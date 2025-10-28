@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using FluentAssertions;
+using NUnit.Framework;
 using NUnit.Framework.Legacy;
 
 namespace HomeExercise.Tasks.ObjectComparison;
@@ -7,27 +8,34 @@ public class ObjectComparison
     [Test]
     [Description("Проверка текущего царя")]
     [Category("ToRefactor")]
+    /*
+     плюсы, относительно CheckCurrentTsar_WithCustomEquality
+      - понятно, какое поле не совпадает
+      - не нужно дописывать новые поля, при расширении Person
+    */
     public void CheckCurrentTsar()
     {
         var actualTsar = TsarRegistry.GetCurrentTsar();
 
         var expectedTsar = new Person("Ivan IV The Terrible", 54, 170, 70,
             new Person("Vasili III of Russia", 28, 170, 60, null));
-
-        // Перепишите код на использование Fluent Assertions.
-        ClassicAssert.AreEqual(actualTsar.Name, expectedTsar.Name);
-        ClassicAssert.AreEqual(actualTsar.Age, expectedTsar.Age);
-        ClassicAssert.AreEqual(actualTsar.Height, expectedTsar.Height);
-        ClassicAssert.AreEqual(actualTsar.Weight, expectedTsar.Weight);
-
-        ClassicAssert.AreEqual(expectedTsar.Parent!.Name, actualTsar.Parent!.Name);
-        ClassicAssert.AreEqual(expectedTsar.Parent.Age, actualTsar.Parent.Age);
-        ClassicAssert.AreEqual(expectedTsar.Parent.Height, actualTsar.Parent.Height);
-        ClassicAssert.AreEqual(expectedTsar.Parent.Parent, actualTsar.Parent.Parent);
+        
+        actualTsar.Should().BeEquivalentTo(expectedTsar, options => 
+            options.Excluding(t => t.Id)
+                .Excluding(t => t.Parent));
+        
+        actualTsar.Parent.Should().BeEquivalentTo(expectedTsar.Parent, options => 
+            options.Excluding(t => t.Id)
+                .Excluding(t => t.Parent));
     }
 
     [Test]
     [Description("Альтернативное решение. Какие у него недостатки?")]
+    /*
+     минусы:
+     - при расширении Person нужно дописывать сравнение новых полей
+     - непонятно, в каком месте и какое поле не проходит
+     */
     public void CheckCurrentTsar_WithCustomEquality()
     {
         var actualTsar = TsarRegistry.GetCurrentTsar();
