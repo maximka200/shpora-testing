@@ -19,9 +19,9 @@ public class ObjectComparison
 
         var expectedTsar = new Person("Ivan IV The Terrible", 54, 170, 70,
             new Person("Vasili III of Russia", 28, 170, 60, null));
-        
+
         actualTsar.Should().BeEquivalentTo(expectedTsar, options =>
-            options.Excluding(info => info.Path.EndsWith(nameof(Person.Id))));
+            options.Excluding(info => info.Name == nameof(Person.Id) && info.DeclaringType == typeof(Person)));
     }
 
     [Test]
