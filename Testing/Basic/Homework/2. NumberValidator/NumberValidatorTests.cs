@@ -1,6 +1,5 @@
 ﻿using FluentAssertions;
 using NUnit.Framework;
-using NUnit.Framework.Legacy;
 
 namespace HomeExercise.Tasks.NumberValidator;
 
@@ -9,97 +8,141 @@ public class NumberValidatorTests
 {
     [Test]
     [TestCase(-1, 5, true, "precision must be a positive number")]
-    [TestCase(2, -3, true, "precision must be a non-negative number less or equal than precision")]
-    [TestCase(3, 3, true, "precision must be a non-negative number less or equal than precision")]
-    public void Constructor_ДолжноВыкинутьArgumentException(int precision, int scale, bool onlyPositive,
-        string errorText)
+    [TestCase(2, -3, true, "scale must be a non-negative number less than precision")]
+    [TestCase(3, 3, true, "scale must be a non-negative number less than precision")]
+    public void Constructor_ShouldThrowArgumentException_WhenPrecisionOrScaleAreInvalid(
+        int precision, int scale, bool onlyPositive, string errorText)
     {
-        Action act = () => new NumberValidator(precision, scale, onlyPositive);
-        act.Should().Throw<ArgumentException>().WithMessage(errorText, $"precision: {precision}, scale: {scale}," +
-                                                                       $" onlyPositive: {onlyPositive} must throw {errorText}");
+        var createSut = () => new NumberValidator(precision, scale, onlyPositive);
+        
+        createSut.Should().Throw<ArgumentException>().WithMessage(errorText);
     }
 
     [Test]
     [TestCase(2, 1, true)]
-    public void Constructor_НеДолжноВыкинутьExceptions(int precision, int scale, bool onlyPositive)
+    public void Constructor_ShouldNotThrowExceptions_WhenArgumentsAreValid(int precision, int scale, bool onlyPositive)
     {
-        var createNumValidator = () => new NumberValidator(precision, scale, onlyPositive);
+        var createSut = () => new NumberValidator(precision, scale, onlyPositive);
         
-        createNumValidator.Should().NotThrow<Exception>($"precision: {precision}, scale: {scale}," +
-                                                         $" onlyPositive: {onlyPositive} should not throw exceptions");
-    }   
+        createSut.Should().NotThrow<Exception>();
+    }
 
     [Test]
     [TestCase(null)]
     [TestCase("")]
-    public void IsValidNumber_ДолжноВернутьFalse_ЕслиСтрокаПустаяИлиNull(string? input)
+    public void IsValidNumber_ShouldReturnFalse_WhenInputIsNullOrEmpty(string? input)
     {
-        var numValidator = new NumberValidator(1);
+        var sut = new NumberValidator(1);
 
-        var output = numValidator.IsValidNumber(input);
+        var actualOutput = sut.IsValidNumber(input);
 
-        output.Should().Be(false, $"input: '{input}' is null or empty, should return false");
+        actualOutput.Should().BeFalse($"input: '{input}' is null or empty, should return false");
     }
 
     [Test]
-    [TestCase("--1.21", false)]
-    [TestCase("1..21", false)]
-    [TestCase("1,,21", false)]
-    [TestCase(".2", false)]
-    [TestCase("2.", false)]
-    [TestCase("qwerty", false)]
-    [TestCase("qwe.rty", false)]
-    [TestCase("1", true)]
-    public void IsValidNumber_ДолжноВернутьFalse_ЕслиСтрокаВНеправильномФормате(string input, bool flag)
+    [TestCase("--1.21")]
+    [TestCase("1..21")]
+    [TestCase("1,,21")]
+    [TestCase(".2")]
+    [TestCase("2.")]
+    [TestCase("qwerty")]
+    [TestCase("qwe.rty")]
+    public void IsValidNumber_ShouldReturnFalse_WhenInputHasInvalidFormat(string input)
     {
-        var numValidator = new NumberValidator(5, 4, false);
+        var sut = new NumberValidator(5, 4);
 
-        var output = numValidator.IsValidNumber(input);
+        var actualOutput = sut.IsValidNumber(input);
 
-        output.Should().Be(flag, $"input: {input} has invalid format, should return {flag}");
+        actualOutput.Should().BeFalse($"input '{input}' has invalid format, should return false");
     }
 
     [Test]
-    [TestCase("-123", false)]
-    [TestCase("11.12", false)]
-    [TestCase("-1.123", false)]
-    [TestCase("11.123", false)]
-    [TestCase("123", true)]
-    public void IsValidNumber_ДолжноВернутьFalse_ЕслиЗнаковБольшеЧемPrecisionИлиЗнаковПослеЗапятойБольшеЧемScale(string input, bool flag)
+    [TestCase("1")]
+    [TestCase("+1")]
+    [TestCase("-0.7")]
+    [TestCase("123,45")]
+    public void IsValidNumber_ShouldReturnTrue_WhenInputHasValidFormat(string input)
     {
-        var numValidator = new NumberValidator(3, 2, false);
+        var sut = new NumberValidator(5, 4);
 
-        var output = numValidator.IsValidNumber(input);
+        var actualOutput = sut.IsValidNumber(input);
 
-        output.Should().Be(flag, "input: {input} exceeds precision or scale, should return {flag}");
+        actualOutput.Should().BeTrue($"input '{input}' has valid format, should return true");
     }
 
     [Test]
-    [TestCase("-1", false)]
-    [TestCase("-1.21", false)]
-    [TestCase("-1,11", false)]
-    [TestCase("123", true)]
-    public void IsValidNumber_ДолжноВернутьFalse_ЕслиOnlyPositiveЭтоTrueАЧислоОтрицательное(string input, bool flag)
+    [TestCase("-123")]
+    [TestCase("11.12")]
+    [TestCase("-1.123")]
+    [TestCase("11.123")]
+    public void IsValidNumber_ShouldReturnFalse_WhenInputExceedsPrecisionOrScale(string input)
     {
-        var numValidator = new NumberValidator(3, 2, true);
+        var sut = new NumberValidator(3, 2);
 
-        var output = numValidator.IsValidNumber(input);
+        var result = sut.IsValidNumber(input);
 
-        output.Should().Be(flag, "input: {input} is negative while onlyPositive is true, should return {flag}");
+        result.Should().BeFalse($"input '{input}' exceeds precision or scale, should return false");
     }
 
     [Test]
-    [TestCase("1111", 5, 0, true)]
-    [TestCase("11111", 5, 0, true)]
-    [TestCase("111111", 5, 0, false)]
-    [TestCase("11.11", 4, 2, true)]
-    [TestCase("11,33", 4, 2, true)]
-    [TestCase("13.333", 5, 2, false)]
+    [TestCase("123")]
+    [TestCase("1.2")]
+    [TestCase("0.12")]
+    public void IsValidNumber_ShouldReturnTrue_WhenInputWithinPrecisionAndScaleLimits(string input)
+    {
+        var sut = new NumberValidator(3, 2);
+
+        var result = sut.IsValidNumber(input);
+
+        result.Should().BeTrue($"input '{input}' fits within precision and scale limits, should return true");
+    }
+
+    [Test]
+    [TestCase("-1")]
+    [TestCase("-1.21")]
+    [TestCase("-1,11")]
+    public void IsValidNumber_ShouldReturnFalse_WhenOnlyPositiveIsTrueAndInputIsNegative(string input)
+    {
+        var sut = new NumberValidator(3, 2, true);
+
+        var result = sut.IsValidNumber(input);
+
+        result.Should().BeFalse($"input '{input}' is negative while onlyPositive is true, should return false");
+    }
+
+    [Test]
+    [TestCase("1111", 5, 0)]
+    [TestCase("11111", 5, 0)]
+    [TestCase("11.11", 4, 2)]
+    [TestCase("11,33", 4, 2)]
+    public void IsValidNumber_ShouldReturnTrue_WhenInputFitsGivenPrecisionAndScale(string input, int precision, int scale)
+    {
+        var sut = new NumberValidator(precision, scale, true);
+    
+        var result = sut.IsValidNumber(input);
+
+        result.Should().BeTrue($"input '{input}' fits into precision {precision} and scale {scale}, should return true");
+    }
+
+    [Test]
+    [TestCase("111111", 5, 0)]
+    [TestCase("13.333", 5, 2)]
+    [TestCase("-11.33", 5, 2)]
+    public void IsValidNumber_ShouldReturnFalse_WhenInputExceedsGivenPrecisionOrScale(string input, int precision, int scale)
+    {
+        var sut = new NumberValidator(precision, scale, true);
+    
+        var result = sut.IsValidNumber(input);
+
+        result.Should().BeFalse($"input '{input}' exceeds precision {precision} or scale {scale}, should return false");
+    }
+
+    [Test]
     [TestCase("-11.33", 5, 2, false)]
-    public void IsValidNumber_ДолжноВернутьFalse_ЕслиВыходЗаПределыPrecisionИлиScale(string input, int precision, int scale, bool expected)
+    public void IsValidNumber_ShouldReturnFalse_WhenNumberIsNegativeAndOnlyPositiveTrue(string input, int precision, int scale, bool expectedOutput)
     {
-        var validator = new NumberValidator(precision, scale, true);
+        var sut = new NumberValidator(precision, scale, true);
         
-        validator.IsValidNumber(input).Should().Be(expected, "input: {input}, precision: {precision}, scale: {scale} should return {expected}");
+        sut.IsValidNumber(input).Should().Be(expectedOutput);
     }
 }
