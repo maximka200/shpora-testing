@@ -79,9 +79,9 @@ public class NumberValidatorTests
     {
         var sut = new NumberValidator(3, 2);
 
-        var result = sut.IsValidNumber(input);
+        var actualOutput = sut.IsValidNumber(input);
 
-        result.Should().BeFalse($"input '{input}' exceeds precision or scale, should return false");
+        actualOutput.Should().BeFalse($"input '{input}' exceeds precision or scale, should return false");
     }
 
     [Test]
@@ -92,9 +92,9 @@ public class NumberValidatorTests
     {
         var sut = new NumberValidator(3, 2);
 
-        var result = sut.IsValidNumber(input);
+        var actualOutput = sut.IsValidNumber(input);
 
-        result.Should().BeTrue($"input '{input}' fits within precision and scale limits, should return true");
+        actualOutput.Should().BeTrue($"input '{input}' fits within precision and scale limits, should return true");
     }
 
     [Test]
@@ -105,9 +105,9 @@ public class NumberValidatorTests
     {
         var sut = new NumberValidator(3, 2, true);
 
-        var result = sut.IsValidNumber(input);
+        var actualOutput = sut.IsValidNumber(input);
 
-        result.Should().BeFalse($"input '{input}' is negative while onlyPositive is true, should return false");
+        actualOutput.Should().BeFalse($"input '{input}' is negative while onlyPositive is true, should return false");
     }
 
     [Test]
@@ -119,9 +119,9 @@ public class NumberValidatorTests
     {
         var sut = new NumberValidator(precision, scale, true);
     
-        var result = sut.IsValidNumber(input);
+        var actualOutput = sut.IsValidNumber(input);
 
-        result.Should().BeTrue($"input '{input}' fits into precision {precision} and scale {scale}, should return true");
+        actualOutput.Should().BeTrue($"input '{input}' fits into precision {precision} and scale {scale}, should return true");
     }
 
     [Test]
@@ -132,9 +132,9 @@ public class NumberValidatorTests
     {
         var sut = new NumberValidator(precision, scale, true);
     
-        var result = sut.IsValidNumber(input);
+        var actualOutput = sut.IsValidNumber(input);
 
-        result.Should().BeFalse($"input '{input}' exceeds precision {precision} or scale {scale}, should return false");
+        actualOutput.Should().BeFalse($"input '{input}' exceeds precision {precision} or scale {scale}, should return false");
     }
 
     [Test]
